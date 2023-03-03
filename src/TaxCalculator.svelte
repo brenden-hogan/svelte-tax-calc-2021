@@ -8,11 +8,11 @@
   $: federalTaxDueDisplay = formatMoney(federalTaxDue);
   $: federalTaxRate = ((federalTaxDue / income) * 100).toFixed(2);
 
-  $: ssTaxDue = income * (6.2 / 100);
+  $: ssTaxDue = Math.min(income * (6.2 / 100), 142800 * (6.2 / 100));
   $: ssTaxDueDisplay = formatMoney(ssTaxDue);
   $: ssTaxRate = ((ssTaxDue / income) * 100).toFixed(2);
 
-  $: mcTaxDue = income * (1.45 / 100);
+  $: mcTaxDue = income * (1.45 / 100) + additionalMc(income, filingStatus);
   $: mcTaxDueDisplay = formatMoney(mcTaxDue);
   $: mcTaxRate = ((mcTaxDue / income) * 100).toFixed(2);
 
@@ -108,6 +108,25 @@
     } catch (e) {
       console.log(e);
     }
+  };
+  
+  const additionalMc = (income, filingStatus) => {
+	let incomeLimit = 0;
+	
+	if (filingStatus === "single" || filingStatus === "headOfHousehold") {
+      incomeLimit = 200000;
+    } else if (filingStatus === "marriedJoint") {
+      incomeLimit = 250000;
+    } else if (filingStatus === "marriedSeperate") {
+      incomeLimit = 125000;
+    } 
+  
+    if (income > incomeLimit) {
+	  return ( income - incomeLimit ) * (0.9 / 100);
+	}
+	
+	return 0;
+  
   };
 
   const getFederalTaxResponsibility = (incomeValue, brackets) => {
